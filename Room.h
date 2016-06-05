@@ -25,6 +25,7 @@ class Room
 		string getUsersAsString(vector<User *>, User *);
 		void sendMessage(string);
 		void sendMessage(User *, string);
+
 	public:
 		Room(int, User *, string, int, int, int);
 

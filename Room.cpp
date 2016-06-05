@@ -2,7 +2,12 @@
 
 Room::Room(int id, User * admin, string name, int maxUsers, int questionsNo, int questionTime)
 {
-
+	_id =id;
+	_admin = admin;
+	_name = name;
+	_maxUsers = maxUsers;
+	_questionsNo = questionsNo;
+	_questionTime = questionTime;
 }
 
 bool Room::joinRoom(User *)

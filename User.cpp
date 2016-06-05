@@ -13,7 +13,7 @@ void User::send(string message)
 
 void User::clearRoom()
 {
-
+	_currGame = nullptr;
 }
 
 bool User::createRoom(int roomId, string roomName, int maxUsers, int questionsNo, int questionTime)
