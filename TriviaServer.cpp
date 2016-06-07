@@ -1,9 +1,14 @@
 #include "TriviaServer.h"
 
+int TriviaServer::_roomIdSequence = 0;
+
 void TriviaServer::server()
 {
 	bindAndListen();
 	SOCKET soc;
+	thread handleMessages(&handleReceivedMessages);
+	handleMessages.detach();
+
 	while (true)
 	{
 		soc = acceptConnection();
@@ -52,6 +57,7 @@ void TriviaServer::clientHandler(SOCKET client)
 	while (true)
 	{
 		msgCode = Helper::getMessageTypeCode(client);
+		if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
 		msg = buildReceiveMessage(client, msgCode);
 
 		switch (msgCode)
@@ -196,7 +202,13 @@ void TriviaServer::handleGetPersonalStatus(ReceivedMessage * msg)
 
 void TriviaServer::handleReceivedMessages()
 {
+	ReceivedMessage * msg;
+	while (true)
+	{
+		while (_queRcvMessages.empty());
+		msg = _queRcvMessages.front();
 
+	}
 }
 
 void TriviaServer::addReceivedMessage(ReceivedMessage * msg)
@@ -248,43 +260,63 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 			break;
 
 		case ROOM_USER_REQ:
-			
+			value = Helper::getStringPartFromSocket(client, 4);
+			values.push_back(value);
 			break;
 
 		case ROOM_JOIN_REQ:
-			handleJoinRoom(msg);
+			value = Helper::getStringPartFromSocket(client, 4);
+			values.push_back(value);
 			break;
 
 		case ROOM_LEAVE_REQ:
-			handleLeaveRoom(msg);
+			
 			break;
 
 		case CREATE_ROOM_REQ:
-			handleCreateRoom(msg);
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			value = Helper::getStringPartFromSocket(client, 1);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
 			break;
 
 		case CLOSE_ROOM_REQ:
-			handleCloseRoom(msg);
+			
 			break;
 
 		case START_GAME_REQ:
-			handleStartGame(msg);
+			
 			break;
 
 		case ANSWER_CODE:
-			handlePlayerAnswer(msg);
+			value = Helper::getStringPartFromSocket(client, 1);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
 			break;
 
 		case HIGHSCORE_REQ:
-			handleGetBestScores(msg);
+			
 			break;
 
 		case INFO_REQ:
-			handleGetPersonalStatus(msg);
+			
 			break;
 
 		case LEAVE_GAME_REQ:
-			handleLeaveGame(msg);
+			
 			break;
 
 		case CLOSING_GAME_REQ:
