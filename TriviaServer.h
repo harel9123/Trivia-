@@ -7,8 +7,9 @@
 #include <queue>
 #include <exception>
 #include <thread>
-#include "SocketsInclude.h"
+#include <condition_variable>
 
+#include "SocketsInclude.h"
 #include "Socket.h"
 #include "User.h"
 #include "Room.h"

@@ -60,68 +60,7 @@ void TriviaServer::clientHandler(SOCKET client)
 		if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
 		msg = buildReceiveMessage(client, msgCode);
 
-		switch (msgCode)
-		{
-			case LOGIN_CODE:
-				handleSignin(msg);
-				break;
-
-			case SIGNOUT_CODE:
-				handleSignout(msg);
-				break;
-
-			case SIGNUP_CODE:
-				handleSignup(msg);
-				break;
-
-			case ROOM_LIST_REQ:
-				handleGetRooms(msg);
-				break;
-
-			case ROOM_USER_REQ:
-				handleGetUsersInRoom(msg);
-				break;
-
-			case ROOM_JOIN_REQ:
-				handleJoinRoom(msg);
-				break;
-
-			case ROOM_LEAVE_REQ:
-				handleLeaveRoom(msg);
-				break;
-
-			case CREATE_ROOM_REQ:
-				handleCreateRoom(msg);
-				break;
-
-			case CLOSE_ROOM_REQ:
-				handleCloseRoom(msg);
-				break;
-
-			case START_GAME_REQ:
-				handleStartGame(msg);
-				break;
-
-			case ANSWER_CODE:
-				handlePlayerAnswer(msg);
-				break;
-
-			case HIGHSCORE_REQ:
-				handleGetBestScores(msg);
-				break;
-
-			case INFO_REQ:
-				handleGetPersonalStatus(msg);
-				break;
-
-			case LEAVE_GAME_REQ:
-				handleLeaveGame(msg);
-				break;
-
-			case CLOSING_GAME_REQ:
-
-				break;
-		}
+		
 	}
 }
 
@@ -203,17 +142,85 @@ void TriviaServer::handleGetPersonalStatus(ReceivedMessage * msg)
 void TriviaServer::handleReceivedMessages()
 {
 	ReceivedMessage * msg;
+	int msgCode;
 	while (true)
 	{
-		while (_queRcvMessages.empty());
-		msg = _queRcvMessages.front();
+		{
+			lock_guard<mutex> lock(_mtxReceivedMessages);
+			msg = _queRcvMessages.front();
+			msgCode = msg->getMessageCode();
 
+			switch (msgCode)
+			{
+				case LOGIN_CODE:
+					handleSignin(msg);
+					break;
+
+				case SIGNOUT_CODE:
+					handleSignout(msg);
+					break;
+
+				case SIGNUP_CODE:
+					handleSignup(msg);
+					break;
+
+				case ROOM_LIST_REQ:
+					handleGetRooms(msg);
+					break;
+
+				case ROOM_USER_REQ:
+					handleGetUsersInRoom(msg);
+					break;
+
+				case ROOM_JOIN_REQ:
+					handleJoinRoom(msg);
+					break;
+
+				case ROOM_LEAVE_REQ:
+					handleLeaveRoom(msg);
+					break;
+
+				case CREATE_ROOM_REQ:
+					handleCreateRoom(msg);
+					break;
+
+				case CLOSE_ROOM_REQ:
+					handleCloseRoom(msg);
+					break;
+
+				case START_GAME_REQ:
+					handleStartGame(msg);
+					break;
+
+				case ANSWER_CODE:
+					handlePlayerAnswer(msg);
+					break;
+
+				case HIGHSCORE_REQ:
+					handleGetBestScores(msg);
+					break;
+
+				case INFO_REQ:
+					handleGetPersonalStatus(msg);
+					break;
+
+				case LEAVE_GAME_REQ:
+					handleLeaveGame(msg);
+					break;
+
+				case CLOSING_GAME_REQ:
+					//Don't know what to do
+					break;
+			}
+		}
 	}
 }
 
 void TriviaServer::addReceivedMessage(ReceivedMessage * msg)
 {
-
+	_mtxReceivedMessages.lock();
+	_queRcvMessages.push(msg);
+	_mtxReceivedMessages.unlock();
 }
 
 ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
