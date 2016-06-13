@@ -8,7 +8,7 @@ User::User(string name, SOCKET sock)
 
 void User::send(string message)
 {
-
+	//need to do
 }
 
 void User::clearRoom()

@@ -6,28 +6,24 @@
 #include <map>
 #include <queue>
 #include <exception>
-#include <thread>
-#include <condition_variable>
+#include <winsock2.h>
+#include <windows.h>
+#pragma comment(lib, "ws2_32.lib")
 
-#include "SocketsInclude.h"
 #include "Socket.h"
 #include "User.h"
 #include "Room.h"
 #include "ReceivedMessage.h"
-#include "DataBase.h"
-#include "Helper.h"
-#include "Protocol.h"
-#include "Validator.h"
+
 
 using namespace std;
 
 class TriviaServer
 {
 	private:
-		SOCKET _socket;
-		sockaddr_in _client;
+		Socket * _socket;
 		map<SOCKET, User *> _connectedUsers;
-		DataBase _db;
+		string _db;//string --> DataBase.
 		map<int, Room *> _roomsList;
 
 		mutex _mtxReceivedMessages;
@@ -36,7 +32,7 @@ class TriviaServer
 		static int _roomIdSequence;
 
 		void bindAndListen() throw();
-		SOCKET acceptConnection() throw();
+		void accept();
 		void clientHandler(SOCKET client);
 		void safeDeleteUser(ReceivedMessage *);
 
@@ -70,4 +66,6 @@ class TriviaServer
 		~TriviaServer();
 
 		void server();
+
+		
 };
