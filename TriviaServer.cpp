@@ -1,40 +1,67 @@
 #include "TriviaServer.h"
 
-void TriviaServer::bindAndListen() throw()
+int TriviaServer::_roomIdSequence = 0;
+
+void TriviaServer::server()
 {
-	_socket = new Socket(8820);
-	int result;
-	result = _socket->socketBind();
-	if (result == SOCKET_ERROR)
+	bindAndListen();
+	SOCKET soc;
+	thread handleMessages(&handleReceivedMessages);
+	handleMessages.detach();
+
+	while (true)
 	{
-		exception * e = new exception("Binding the socket has failed !");
-		delete _socket;
-		throw(e);
-	}
-	result = _socket->socketListen(1);
-	if (result == SOCKET_ERROR)
-	{
-		exception * e = new exception("Listening to the socket has failed !");
-		delete _socket;
-		throw(e);
+		soc = acceptConnection();
+		thread t(&clientHandler, soc);
+		t.detach();
 	}
 }
 
-void TriviaServer::accept()
+void TriviaServer::bindAndListen() throw()
 {
-	SOCKET soc = _socket->socketAccept();
+	Socket s(8820);
+	int result;
+	result = s.socketBind();
+	if (result == SOCKET_ERROR)
+	{
+		exception * e = new exception("Binding the socket has failed !");
+		throw(e);
+	}
+	result = s.socketListen(1);
+	if (result == SOCKET_ERROR)
+	{
+		exception * e = new exception("Listening to the socket has failed !");
+		throw(e);
+	}
+	sockaddr_in server;
+	int bindRes;
+	_socket = s.getSocket();
+}
+
+SOCKET TriviaServer::acceptConnection() throw()
+{
+	int len = sizeof(struct sockaddr_in);
+	SOCKET soc = accept(_socket, (struct sockaddr *)&_client, &len);
 	if (soc == SOCKET_ERROR)
 	{
 		exception * e = new exception("Accepting connection has failed !");
-		delete _socket;
 		throw(e);
 	}
-	//Add the user to _connectedUsers
+	return soc;
 }
 
 void TriviaServer::clientHandler(SOCKET client)
 {
+	int msgCode;
+	ReceivedMessage * msg;
+	while (true)
+	{
+		msgCode = Helper::getMessageTypeCode(client);
+		if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
+		msg = buildReceiveMessage(client, msgCode);
 
+		
+	}
 }
 
 void TriviaServer::safeDeleteUser(ReceivedMessage * msg)
@@ -114,17 +141,196 @@ void TriviaServer::handleGetPersonalStatus(ReceivedMessage * msg)
 
 void TriviaServer::handleReceivedMessages()
 {
+	ReceivedMessage * msg;
+	int msgCode;
+	while (true)
+	{
+		{
+			lock_guard<mutex> lock(_mtxReceivedMessages);
+			msg = _queRcvMessages.front();
+			msgCode = msg->getMessageCode();
 
+			switch (msgCode)
+			{
+				case LOGIN_CODE:
+					handleSignin(msg);
+					break;
+
+				case SIGNOUT_CODE:
+					handleSignout(msg);
+					break;
+
+				case SIGNUP_CODE:
+					handleSignup(msg);
+					break;
+
+				case ROOM_LIST_REQ:
+					handleGetRooms(msg);
+					break;
+
+				case ROOM_USER_REQ:
+					handleGetUsersInRoom(msg);
+					break;
+
+				case ROOM_JOIN_REQ:
+					handleJoinRoom(msg);
+					break;
+
+				case ROOM_LEAVE_REQ:
+					handleLeaveRoom(msg);
+					break;
+
+				case CREATE_ROOM_REQ:
+					handleCreateRoom(msg);
+					break;
+
+				case CLOSE_ROOM_REQ:
+					handleCloseRoom(msg);
+					break;
+
+				case START_GAME_REQ:
+					handleStartGame(msg);
+					break;
+
+				case ANSWER_CODE:
+					handlePlayerAnswer(msg);
+					break;
+
+				case HIGHSCORE_REQ:
+					handleGetBestScores(msg);
+					break;
+
+				case INFO_REQ:
+					handleGetPersonalStatus(msg);
+					break;
+
+				case LEAVE_GAME_REQ:
+					handleLeaveGame(msg);
+					break;
+
+				case CLOSING_GAME_REQ:
+					//Don't know what to do
+					break;
+			}
+		}
+	}
 }
 
 void TriviaServer::addReceivedMessage(ReceivedMessage * msg)
 {
-
+	_mtxReceivedMessages.lock();
+	_queRcvMessages.push(msg);
+	_mtxReceivedMessages.unlock();
 }
 
-ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client_sock, int msgCode)
+ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 {
+	ReceivedMessage * msg;
+	msg = new ReceivedMessage(client, msgCode);
+	vector<string> values = msg->getValues();
 
+	int len;
+	string value;
+
+	switch (msgCode)
+	{
+		case LOGIN_CODE:
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+			break;
+
+		case SIGNOUT_CODE:
+			
+			break;
+
+		case SIGNUP_CODE:
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+			break;
+
+		case ROOM_LIST_REQ:
+			handleGetRooms(msg);
+			break;
+
+		case ROOM_USER_REQ:
+			value = Helper::getStringPartFromSocket(client, 4);
+			values.push_back(value);
+			break;
+
+		case ROOM_JOIN_REQ:
+			value = Helper::getStringPartFromSocket(client, 4);
+			values.push_back(value);
+			break;
+
+		case ROOM_LEAVE_REQ:
+			
+			break;
+
+		case CREATE_ROOM_REQ:
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			value = Helper::getStringPartFromSocket(client, 1);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+			break;
+
+		case CLOSE_ROOM_REQ:
+			
+			break;
+
+		case START_GAME_REQ:
+			
+			break;
+
+		case ANSWER_CODE:
+			value = Helper::getStringPartFromSocket(client, 1);
+			values.push_back(value);
+
+			len = Helper::getIntPartFromSocket(client, 2);
+			value = Helper::getStringPartFromSocket(client, len);
+			values.push_back(value);
+			break;
+
+		case HIGHSCORE_REQ:
+			
+			break;
+
+		case INFO_REQ:
+			
+			break;
+
+		case LEAVE_GAME_REQ:
+			
+			break;
+
+		case CLOSING_GAME_REQ:
+
+			break;
+	}
+	return msg;
 }
 
 User * TriviaServer::getUserByName(string name)

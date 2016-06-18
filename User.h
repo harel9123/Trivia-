@@ -31,7 +31,7 @@ class User
 		Room * getRoom() { return _currRoom; };
 		Game * getGame() { return _currGame; };
 
-		void setGame(Game * game) { _currGame = game; _currRoom = nullptr; };
+		void setGame(Game * game) { _currGame = game; };
 		void clearRoom();
 
 		bool createRoom(int, string, int, int, int);//Fill in
