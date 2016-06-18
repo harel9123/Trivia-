@@ -71,12 +71,46 @@ void TriviaServer::safeDeleteUser(ReceivedMessage * msg)
 
 User * TriviaServer::handleSignin(ReceivedMessage * msg)
 {
-
+	
 }
 
 bool TriviaServer::handleSignup(ReceivedMessage * msg)
 {
+	string username = msg->getValues()[0];
+	string password = msg->getValues()[1];
+	string email = msg->getValues()[2];
 
+	bool isValid = Validator::isUserNameValid(username);
+	if (isValid)
+	{
+		isValid = Validator::isPasswordValid(password);
+		if (isValid)
+		{
+			if (!_db.isUserExists(username))
+			{
+				_db.addNewUser(username, password, email);
+				//Send success message
+				return true;
+			}
+			else
+			{
+				//Send failure message - already exists
+				return false;
+			}
+
+		}
+		else
+		{
+			//Send failure message - invalid password
+			return false;
+		}
+	}
+	else
+	{
+		//Send failure message - invalid username
+		return false;
+	}
+	return false;
 }
 
 void TriviaServer::handleSignout(ReceivedMessage * msg)

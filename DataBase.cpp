@@ -10,7 +10,7 @@ DataBase::~DataBase()
 	
 }
 
-bool DataBase::isUserExixts(string)
+bool DataBase::isUserExists(string)
 {
 
 }
