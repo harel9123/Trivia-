@@ -69,16 +69,54 @@ void TriviaServer::safeDeleteUser(ReceivedMessage * msg)
 
 }
 
-User * TriviaServer::handleSignin(ReceivedMessage * msg)
+User * TriviaServer::handleSignin(ReceivedMessage * msg) throw()
 {
-	
+	string message = to_string(SIGNIN_RESP);
+	User * user = nullptr;
+	vector<string> values = msg->getValues();
+	string username = values[0];
+	string password = values[1];
+	bool res = _db.isUserAndPassMatch(username, password);
+	if (res)
+	{
+		//Checking if the user is logged in.
+		user = getUserByName(username);
+		if (user != nullptr)
+		{
+			user = new User(username, msg->getSock());
+			message += to_string(SIGNIN_SUCCESS);
+		}
+		else
+		{
+			message += to_string(SIGNIN_CONNECTED);
+		}
+	}
+	else
+	{
+		message += to_string(SIGNIN_WRONG);
+	}
+
+	try
+	{
+		Helper::sendData(msg->getSock(), message);
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+
+	return user;
 }
 
-bool TriviaServer::handleSignup(ReceivedMessage * msg)
+bool TriviaServer::handleSignup(ReceivedMessage * msg) throw()
 {
+	string message = to_string(SIGNUP_RESP);
+
 	string username = msg->getValues()[0];
 	string password = msg->getValues()[1];
 	string email = msg->getValues()[2];
+
+	bool flag = true;
 
 	bool isValid = Validator::isUserNameValid(username);
 	if (isValid)
@@ -89,28 +127,36 @@ bool TriviaServer::handleSignup(ReceivedMessage * msg)
 			if (!_db.isUserExists(username))
 			{
 				_db.addNewUser(username, password, email);
-				//Send success message
-				return true;
+				message += to_string(SIGNUP_SUCCESS);
 			}
 			else
 			{
-				//Send failure message - already exists
-				return false;
+				message += to_string(USER_EXISTS);
+				flag = false;
 			}
-
 		}
 		else
 		{
-			//Send failure message - invalid password
-			return false;
+			message += to_string(PASS_ILLEGAL);
+			flag = false;
 		}
 	}
 	else
 	{
-		//Send failure message - invalid username
-		return false;
+		message += to_string(NAME_ILLEGAL);
+		flag = false;
 	}
-	return false;
+
+	try
+	{
+		Helper::sendData(msg->getSock(), message);
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+
+	return flag;
 }
 
 void TriviaServer::handleSignout(ReceivedMessage * msg)
@@ -183,68 +229,77 @@ void TriviaServer::handleReceivedMessages()
 			lock_guard<mutex> lock(_mtxReceivedMessages);
 			msg = _queRcvMessages.front();
 			msgCode = msg->getMessageCode();
-
-			switch (msgCode)
+			try
 			{
-				case LOGIN_CODE:
-					handleSignin(msg);
-					break;
+				switch (msgCode)
+				{
+					case SIGNIN_CODE:
+						User * user;
+						user = handleSignin(msg);
+						SOCKET s = msg->getSock();
+						_connectedUsers.insert(pair<SOCKET, User *>(s, user));
+						break;
 
-				case SIGNOUT_CODE:
-					handleSignout(msg);
-					break;
+					case SIGNOUT_CODE:
+						handleSignout(msg);
+						break;
 
-				case SIGNUP_CODE:
-					handleSignup(msg);
-					break;
+					case SIGNUP_CODE:
+						handleSignup(msg);
+						break;
 
-				case ROOM_LIST_REQ:
-					handleGetRooms(msg);
-					break;
+					case ROOM_LIST_REQ:
+						handleGetRooms(msg);
+						break;
 
-				case ROOM_USER_REQ:
-					handleGetUsersInRoom(msg);
-					break;
+					case ROOM_USER_REQ:
+						handleGetUsersInRoom(msg);
+						break;
 
-				case ROOM_JOIN_REQ:
-					handleJoinRoom(msg);
-					break;
+					case ROOM_JOIN_REQ:
+						handleJoinRoom(msg);
+						break;
 
-				case ROOM_LEAVE_REQ:
-					handleLeaveRoom(msg);
-					break;
+					case ROOM_LEAVE_REQ:
+						handleLeaveRoom(msg);
+						break;
 
-				case CREATE_ROOM_REQ:
-					handleCreateRoom(msg);
-					break;
+					case CREATE_ROOM_REQ:
+						handleCreateRoom(msg);
+						break;
 
-				case CLOSE_ROOM_REQ:
-					handleCloseRoom(msg);
-					break;
+					case CLOSE_ROOM_REQ:
+						handleCloseRoom(msg);
+						break;
 
-				case START_GAME_REQ:
-					handleStartGame(msg);
-					break;
+					case START_GAME_REQ:
+						handleStartGame(msg);
+						break;
 
-				case ANSWER_CODE:
-					handlePlayerAnswer(msg);
-					break;
+					case ANSWER_CODE:
+						handlePlayerAnswer(msg);
+						break;
 
-				case HIGHSCORE_REQ:
-					handleGetBestScores(msg);
-					break;
+					case HIGHSCORE_REQ:
+						handleGetBestScores(msg);
+						break;
 
-				case INFO_REQ:
-					handleGetPersonalStatus(msg);
-					break;
+					case INFO_REQ:
+						handleGetPersonalStatus(msg);
+						break;
 
-				case LEAVE_GAME_REQ:
-					handleLeaveGame(msg);
-					break;
+					case LEAVE_GAME_REQ:
+						handleLeaveGame(msg);
+						break;
 
-				case CLOSING_GAME_REQ:
-					//Don't know what to do
-					break;
+					case CLOSING_GAME_REQ:
+						//Don't know what to do
+						break;
+				}
+			}
+			catch (exception e)
+			{
+				cout << e.what() << endl;
 			}
 		}
 	}
@@ -268,7 +323,7 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 
 	switch (msgCode)
 	{
-		case LOGIN_CODE:
+		case SIGNIN_CODE:
 			len = Helper::getIntPartFromSocket(client, 2);
 			value = Helper::getStringPartFromSocket(client, len);
 			values.push_back(value);
@@ -297,7 +352,7 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 			break;
 
 		case ROOM_LIST_REQ:
-			handleGetRooms(msg);
+
 			break;
 
 		case ROOM_USER_REQ:
@@ -374,10 +429,24 @@ User * TriviaServer::getUserByName(string name)
 
 User * TriviaServer::getUserBySocket(SOCKET sock)
 {
+	User * user = nullptr;
+	try
+	{
+		user = _connectedUsers[sock];
+	}
+	catch (exception e){}
 
+	return user;
 }
 
 Room * TriviaServer::getRoomById(int id)
 {
+	Room * room = nullptr;
+	try
+	{
+		room = _roomsList[id];
+	}
+	catch (exception e){}
 
+	return room;
 }

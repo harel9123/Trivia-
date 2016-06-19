@@ -1,7 +1,7 @@
 #pragma once
 
 //Client codes
-#define LOGIN_CODE 200
+#define SIGNIN_CODE 200
 #define SIGNOUT_CODE 201
 #define SIGNUP_CODE 203
 

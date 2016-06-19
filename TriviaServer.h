@@ -40,23 +40,23 @@ class TriviaServer
 		void clientHandler(SOCKET client);
 		void safeDeleteUser(ReceivedMessage *);
 
-		User * handleSignin(ReceivedMessage *);
-		bool handleSignup(ReceivedMessage *);
-		void handleSignout(ReceivedMessage *);
+		User * handleSignin(ReceivedMessage *) throw();
+		bool handleSignup(ReceivedMessage *) throw();
+		void handleSignout(ReceivedMessage *) throw();
 
-		void handleLeaveGame(ReceivedMessage *);
-		void handleStartGame(ReceivedMessage *);
-		void handlePlayerAnswer(ReceivedMessage *);
+		void handleLeaveGame(ReceivedMessage *) throw();
+		void handleStartGame(ReceivedMessage *) throw();
+		void handlePlayerAnswer(ReceivedMessage *) throw();
 
-		bool handleCreateRoom(ReceivedMessage *);
-		bool handleCloseRoom(ReceivedMessage *);
-		bool handleJoinRoom(ReceivedMessage *);
-		bool handleLeaveRoom(ReceivedMessage *);
-		void handleGetUsersInRoom(ReceivedMessage *);
-		void handleGetRooms(ReceivedMessage *);
+		bool handleCreateRoom(ReceivedMessage *) throw();
+		bool handleCloseRoom(ReceivedMessage *) throw();
+		bool handleJoinRoom(ReceivedMessage *) throw();
+		bool handleLeaveRoom(ReceivedMessage *) throw();
+		void handleGetUsersInRoom(ReceivedMessage *) throw();
+		void handleGetRooms(ReceivedMessage *) throw();
 
-		void handleGetBestScores(ReceivedMessage *);
-		void handleGetPersonalStatus(ReceivedMessage *);
+		void handleGetBestScores(ReceivedMessage *) throw();
+		void handleGetPersonalStatus(ReceivedMessage *) throw();
 
 		void handleReceivedMessages();
 		void addReceivedMessage(ReceivedMessage *);
