@@ -6,10 +6,7 @@
 
 #include "User.h"
 
-class User
-{
-
-};
+class User;
 
 class Room
 {

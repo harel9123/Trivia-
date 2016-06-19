@@ -10,21 +10,29 @@ Room::Room(int id, User * admin, string name, int maxUsers, int questionsNo, int
 	_questionTime = questionTime;
 }
 
-bool Room::joinRoom(User *)
+bool Room::joinRoom(User * user)
 {
-
+	bool retVal = false;
+	if (_users.size() < _maxUsers)
+	{
+		_users.push_back(user); 
+		retVal = true;
+	}
+	sendMessage(getUsersListMessage());
 }
 
 void Room::leaveRoom(User *user)
 {
-	int i = 0;
 	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
 	{
-		if (it.operator != *user)
+		if (*it == user)
 		{
-			_users.erase(_users.begin() + i); //need to take care about sendMessage because i didnt understand it
+			_users.erase(it); 
 		}
-		i++;
+	}
+	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+	{
+		sendMessage(*it, getUsersListMessage());
 	}
 }
 
@@ -35,13 +43,13 @@ int Room::closeRoom(User *user)
 	{
 		//need to take care about sendMessage because i didnt understand it
 		retVal = _id;
-		for (int i = 0; i < _users.size(); i++)
+		for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
 		{
-			if (_users[i] != _admin)
+			if (*it != _admin)
 			{
-				_users[i].clearRoom();
+				(*it)->clearRoom();
 			}
-		}
+		} 
 	}
 	else
 	{
@@ -55,14 +63,14 @@ string Room::getUsersListMessage()
 
 }
 
-string Room::getUsersAsString(vector<User *>users, User *user)
+string Room::getUsersAsString(vector<User *> users, User * user)
 {
-	string usersStr;
+	string usersStr = "";
 	for (vector<User *>::iterator it = users.begin(); it != users.end(); ++it)
 	{
-		if (it.operator != *user)
+		if (*it != user)
 		{
-			usersStr = *it.operator*.getUsername(); //not sure
+			usersStr += (*it)->getUsername(); //not sure
 		}
 	}
 	return usersStr;
