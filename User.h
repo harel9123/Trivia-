@@ -10,10 +10,7 @@
 #pragma comment(lib,"ws2_32.lib")
 using namespace std;
 
-class Room
-{
-
-};
+class Room;
 
 class User
 {
@@ -31,7 +28,7 @@ class User
 		Room * getRoom() { return _currRoom; };
 		Game * getGame() { return _currGame; };
 
-		void setGame(Game * game) { _currGame = game; };
+		void setGame(Game * game) { _currGame = game; _currRoom = nullptr; };
 		void clearRoom();
 
 		bool createRoom(int, string, int, int, int);//Fill in
