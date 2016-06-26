@@ -60,7 +60,13 @@ int Room::closeRoom(User *user)
 
 string Room::getUsersListMessage()
 {
-
+	string str = "180";
+	str += _users.size();
+	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+	{
+		str += "##";
+		str += (*it)->getUsername();
+	}
 }
 
 string Room::getUsersAsString(vector<User *> users, User * user)
