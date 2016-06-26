@@ -5,8 +5,8 @@
 #include <vector>
 #include <map>
 
-//#include "DataBase.h" //Add after creation
-//#include "Question.h" //Add after creation
+#include "DataBase.h"
+#include "Question.h"
 #include "User.h"
 
 using namespace std;
@@ -14,11 +14,11 @@ using namespace std;
 class Game
 {
 	private:
-		vector<string> _questions;//string --> Question *
+		vector<Question *> _questions;
 		vector<User *> _players;
 		int _questionsNo;
 		int _currQuestionIndex;
-		string &_db;//string --> DataBase
+		DataBase &_db;
 		map<string, int> _results;
 		int _currentTurnAnswers;
 
@@ -26,7 +26,7 @@ class Game
 		void initQuestionsFromDB();
 		void sendQuestionToAllUsers();
 	public:
-		Game(const vector<User *>&, int, string&);//string --> DataBase
+		Game(const vector<User *>&, int, DataBase&);
 		~Game();
 
 		void sendFirstQuestion();
