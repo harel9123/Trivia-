@@ -2,10 +2,14 @@
 
 #include <vector>
 #include <string>
-#include <WinSock2.h>
+#include <unordered_map>
+#include <sstream>
+#include "sqlite3.h"
 #include "Question.h"
 
 using namespace std;
+
+#define DATABASE_NAME "TriviaDB.db"
 
 class DataBase
 {
@@ -23,6 +27,8 @@ class DataBase
 		bool addAnswerToPlayer(int, string, int, string, bool, int);
 
 	private:
+		sqlite3 * db;
+		unordered_map<string, vector<string>> results;
 		int static callBackCount(void*, int, char**, char**);
 		int static callBackQuestions(void*, int, char**, char**);
 		int static callBackBestScores(void*, int, char**, char**);
