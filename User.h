@@ -30,6 +30,7 @@ class User
 
 		void setGame(Game * game) { _currGame = game; _currRoom = nullptr; };
 		void clearRoom();
+		void clearGame();	
 
 		bool createRoom(int, string, int, int, int);//Fill in
 		bool joinRoom(Room * room);
