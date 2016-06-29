@@ -3,10 +3,6 @@
 DataBase::DataBase()
 {
 	int rc;
-	sqlite3 * db;
-	char * zErrMsg = 0;
-	string name;
-	int peopleCounter = 0, i = 0;
 
 	rc = sqlite3_open(DATABASE_NAME, &db);
 
@@ -24,9 +20,23 @@ DataBase::~DataBase()
 	
 }
 
-bool DataBase::isUserExists(string)
+bool DataBase::isUserExists(string username)
 {
+	cout << "Checking if " << username << " exists" << endl;
 
+	int rc;
+	string query;
+	char * errMsg;
+	query = "SELECT COUNT(username) FROM users WHERE username = " + username;
+
+	rc = sqlite3_exec(db, query.c_str(), callBackCount, 0, &errMsg);
+
+	if (rc != SQLITE_OK)
+	{
+		cout << "SQL Error: " << errMsg << endl;
+		sqlite3_free(errMsg);
+		return false;
+	}
 }
 
 bool DataBase::addNewUser(string, string, string)
