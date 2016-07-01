@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <sstream>
 #include <cstdlib> 
 #include <ctime>
@@ -32,6 +33,7 @@ class DataBase
 	private:
 		sqlite3 * db;
 		unordered_map<string, vector<string>> results;
+		void buildScoresMap(map<string, int> scores);
 		Question * createQuestion(int num);
 		void clearTable();
 		bool execute(string);

@@ -84,7 +84,7 @@ vector<Question *> DataBase::initQuestions(int questionsNo)
 
 	srand((unsigned)time(0));
 
-	query = "SELECT * FROM questions;";
+	query = "SELECT * FROM t_questions;";
 	if (execute(query) == false)
 	{
 		return questions;
@@ -104,41 +104,127 @@ vector<Question *> DataBase::initQuestions(int questionsNo)
 Question * DataBase::createQuestion(int num)
 {
 	Question * q;
-	string question, A1, A2, A3, A4;
+	string question, correctAns, A2, A3, A4;
 	question = results["question"][num];
-	A1 = results["correntAnswer"][num];
-	A2 = results["answer2"][num];
-	A3 = results["answer3"][num];
-	A4 = results["answer4"][num];
+	correctAns = results["correct_ans"][num];
+	A2 = results["ans2"][num];
+	A3 = results["ans3"][num];
+	A4 = results["ans4"][num];
 
-	q = new Question(num + 1, question, A1, A2, A3, A4);
+	q = new Question(num + 1, question, correctAns, A2, A3, A4);
 
 	return q;
 }
 
 vector<string> DataBase::getBestScores()
 {
+	map<string, int> scores = map<string, int>();
 	vector<string> bestScores = vector<string>();
-	string query = "SELECT username, correctAnswers FROM users ORDER BY correctAnswers ASC LIMIT 3;";
+	string query = "SELECT username, is_correct FROM t_users;";
 
 	if (execute(query) == false)
 	{
 		return bestScores;
 	}
 
-	int i;
+	buildScoresMap(scores);
+
+	string name, highestName;
+	int i, j, length = results["username"].size(), val, max;
 	for (i = 0; i < 3; i++)
 	{
-		bestScores.push_back(results["username"][i]);
-		bestScores.push_back(results["correctAnswers"][i]);
+		for (j = 0; j < length; j++)
+		{
+			name = results["username"][j];
+			val = scores[name];
+
+			if (val > max)
+			{
+				max = val;
+				highestName = name;
+			}
+		}
+
+		bestScores.push_back(highestName);
+		bestScores.push_back(to_string(max));
+		max = 0;
+
+		scores.erase(highestName);
 	}
 
 	return bestScores;
 }
 
-vector<string> DataBase::getPersonalStatus(string)
+void DataBase::buildScoresMap(map<string, int> scores)
 {
+	string name, highestName;
+	int i, j, length = results["username"].size(), max = 0, val = 0;
+	
+	for (i = 0; i < length; i++)
+	{
+		name = results["username"][i];
+		scores.insert(pair<string, int>(results["username"][j], 0));
+	}
+	
+	for (i = 0; i < length; i++)
+	{
+		name = results["username"][j];
+		val = scores[name];
 
+		if (stoi(results["is_correct"][j]) == 1)
+		{
+			val++;
+		}
+
+		scores["username"] = val;
+	}
+}
+
+vector<string> DataBase::getPersonalStatus(string username)
+{
+	std::pair<std::map<char, int>::iterator, bool> ret;
+	map<string, int> tempMap = map<string, int>();
+	vector<string> status = vector<string>();
+	map<string, int> scores = map<string, int>();
+
+	string query;
+	query = "SELECT game_id, username, is_correct, answer_time FROM t_players_answers WHERE username = " + username + ";";
+
+	if (execute(query) == false)
+	{
+		return status;
+	}
+
+	buildScoresMap(scores);
+
+	int numOfQuestions, correctAns, wrongAns, gamesNum = 0, i;
+	double answerTime = 0;
+
+	numOfQuestions = results["username"].size();
+	correctAns = scores[username];
+	wrongAns = numOfQuestions - correctAns;
+
+	for (i = 0; i < numOfQuestions; i++)
+	{
+		ret = tempMap.insert(pair<string, int>(results["game_id"][i], 0));
+		if (ret.second != false)
+		{
+			gamesNum++;
+		}
+	}
+
+	for (i = 0; i < numOfQuestions; i++)
+	{
+		answerTime += stoi(results["answer_time"][i]);
+	}
+	answerTime = answerTime / numOfQuestions;
+
+	status.push_back(to_string(gamesNum));
+	status.push_back(to_string(correctAns));
+	status.push_back(to_string(wrongAns));
+	status.push_back(to_string(answerTime));
+	
+	return status;
 }
 
 int DataBase::insertNewGame()
