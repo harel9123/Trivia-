@@ -118,7 +118,22 @@ Question * DataBase::createQuestion(int num)
 
 vector<string> DataBase::getBestScores()
 {
+	vector<string> bestScores = vector<string>();
+	string query = "SELECT username, correctAnswers FROM users ORDER BY correctAnswers ASC LIMIT 3;";
 
+	if (execute(query) == false)
+	{
+		return bestScores;
+	}
+
+	int i;
+	for (i = 0; i < 3; i++)
+	{
+		bestScores.push_back(results["username"][i]);
+		bestScores.push_back(results["correctAnswers"][i]);
+	}
+
+	return bestScores;
 }
 
 vector<string> DataBase::getPersonalStatus(string)
