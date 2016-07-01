@@ -30,6 +30,8 @@ class DataBase
 	private:
 		sqlite3 * db;
 		unordered_map<string, vector<string>> results;
+		bool execute(string);
+		int callback(void* notUsed, int argc, char** argv, char** azCol);
 		int static callBackCount(void*, int, char**, char**);
 		int static callBackQuestions(void*, int, char**, char**);
 		int static callBackBestScores(void*, int, char**, char**);

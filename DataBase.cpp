@@ -24,27 +24,36 @@ bool DataBase::isUserExists(string username)
 {
 	cout << "Checking if " << username << " exists" << endl;
 
-	int rc;
+	bool retVal = true;
 	string query;
-	char * errMsg;
-	query = "SELECT COUNT(username) FROM users WHERE username = " + username;
+	query = "SELECT username FROM users WHERE username = " + username + ";";
 
-	rc = sqlite3_exec(db, query.c_str(), callBackCount, 0, &errMsg);
+	retVal = execute(query);
 
-	if (rc != SQLITE_OK)
+	if (results.size() != 0 && retVal)
 	{
-		cout << "SQL Error: " << errMsg << endl;
-		sqlite3_free(errMsg);
-		return false;
+		return retVal;
 	}
+	return false;
 }
 
-bool DataBase::addNewUser(string, string, string)
+bool DataBase::addNewUser(string username, string password, string email)
 {
+	bool retVal = isUserExists(username);
+	if (retVal)
+	{
+		return !(retVal);
+	}
 
+	string query;
+	query = "INSERT INTO users VALUES(" + username + ", " + password + ", " + email + ");";
+
+	retVal = execute(query);
+
+	return retVal;
 }
 
-bool DataBase::isUserAndPassMatch(string, string)
+bool DataBase::isUserAndPassMatch(string username, string password)
 {
 
 }
@@ -77,6 +86,44 @@ bool DataBase::updateGameStatus(int)
 bool DataBase::addAnswerToPlayer(int, string, int, string, bool, int)
 {
 
+}
+
+bool DataBase::execute(string query)
+{
+	int rc;
+	char * errMsg;
+	rc = sqlite3_exec(db, query.c_str(), this->callback, 0, &errMsg);
+
+	if (rc != SQLITE_OK)
+	{
+		cout << "SQL Error: " << errMsg << endl;
+		sqlite3_free(errMsg);
+		return false;
+	}
+	return true;
+}
+
+int DataBase::callback(void* notUsed, int argc, char** argv, char** azCol)
+{
+	int i;
+
+	for (i = 0; i < argc; i++)
+	{
+		auto it = results.find(azCol[i]);
+		if (it != results.end())
+		{
+			it->second.push_back(argv[i]);
+		}
+		else
+		{
+			pair<string, vector<string>> p;
+			p.first = azCol[i];
+			p.second.push_back(argv[i]);
+			results.insert(p);
+		}
+	}
+
+	return 0;
 }
 
 int static callBackCount(void*, int, char**, char**)
