@@ -75,9 +75,45 @@ bool DataBase::isUserAndPassMatch(string username, string password)
 	return pass == password;
 }
 
-vector<Question*> DataBase::initQusestions(int)
+vector<Question *> DataBase::initQuestions(int questionsNo)
 {
+	Question * question;
+	vector<Question *> questions = vector<Question *>();
+	int i, num, len;
+	string query;
 
+	srand((unsigned)time(0));
+
+	query = "SELECT * FROM questions;";
+	if (execute(query) == false)
+	{
+		return questions;
+	}
+
+	len = results["question"].size();
+
+	for (i = 0; i < questionsNo; i++)
+	{
+		num = rand() % len;
+		questions.push_back(createQuestion(num));
+	}
+
+	return questions;
+}
+
+Question * DataBase::createQuestion(int num)
+{
+	Question * q;
+	string question, A1, A2, A3, A4;
+	question = results["question"][num];
+	A1 = results["correntAnswer"][num];
+	A2 = results["answer2"][num];
+	A3 = results["answer3"][num];
+	A4 = results["answer4"][num];
+
+	q = new Question(num + 1, question, A1, A2, A3, A4);
+
+	return q;
 }
 
 vector<string> DataBase::getBestScores()

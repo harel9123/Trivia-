@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 #include <sstream>
+#include <cstdlib> 
+#include <ctime>
 #include "sqlite3.h"
 #include "Question.h"
 
@@ -20,7 +22,7 @@ class DataBase
 		bool isUserExists(string);
 		bool addNewUser(string, string, string);
 		bool isUserAndPassMatch(string, string);
-		vector<Question*> initQusestions(int);
+		vector<Question*> initQuestions(int);
 		vector<string> getBestScores();
 		vector<string> getPersonalStatus(string);
 		int insertNewGame();
@@ -30,6 +32,7 @@ class DataBase
 	private:
 		sqlite3 * db;
 		unordered_map<string, vector<string>> results;
+		Question * createQuestion(int num);
 		void clearTable();
 		bool execute(string);
 		int callback(void* notUsed, int argc, char** argv, char** azCol);
