@@ -55,7 +55,24 @@ bool DataBase::addNewUser(string username, string password, string email)
 
 bool DataBase::isUserAndPassMatch(string username, string password)
 {
+	bool retVal = isUserExists(username);
+	if (retVal == false)
+	{
+		return retVal;
+	}
 
+	string query, pass;
+	query = "SELECT password FROM users WHERE username = " + username + ";";
+
+	retVal = execute(query);
+	if (retVal == false)
+	{
+		return retVal;
+	}
+
+	pass = results["password"][0];
+
+	return pass == password;
 }
 
 vector<Question*> DataBase::initQusestions(int)
@@ -88,8 +105,19 @@ bool DataBase::addAnswerToPlayer(int, string, int, string, bool, int)
 
 }
 
+void DataBase::clearTable()
+{
+	for (auto it = results.begin(); it != results.end(); ++it)
+	{
+		it->second.clear();
+	}
+	results.clear();
+}
+
 bool DataBase::execute(string query)
 {
+	clearTable();
+
 	int rc;
 	char * errMsg;
 	rc = sqlite3_exec(db, query.c_str(), this->callback, 0, &errMsg);
