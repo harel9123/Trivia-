@@ -37,9 +37,6 @@ class DataBase
 		Question * createQuestion(int num);
 		void clearTable();
 		bool execute(string);
+		string getCurrentDate();
 		int callback(void* notUsed, int argc, char** argv, char** azCol);
-		int static callBackCount(void*, int, char**, char**);
-		int static callBackQuestions(void*, int, char**, char**);
-		int static callBackBestScores(void*, int, char**, char**);
-		int static callBackPersonalStatus(void*, int, char**, char**);
 };

@@ -17,7 +17,7 @@ DataBase::DataBase()
 
 DataBase::~DataBase()
 {
-	
+	sqlite3_close(db);
 }
 
 bool DataBase::isUserExists(string username)
@@ -227,19 +227,56 @@ vector<string> DataBase::getPersonalStatus(string username)
 	return status;
 }
 
+string DataBase::getCurrentDate()
+{
+	time_t now;
+	struct tm localTime;
+	now = time(NULL);
+
+	localTime = *localtime(&now);
+
+	string date = to_string(localTime.tm_year + 1900) + "-" + to_string(localTime.tm_mon + 1) + "-" + to_string(localTime.tm_mday) + " ";
+	date += to_string(localTime.tm_hour) + ":" + to_string(localTime.tm_min) + ":" + to_string(localTime.tm_sec);
+
+	return date;
+}
+
 int DataBase::insertNewGame()
 {
+	string query, date = getCurrentDate();
+	query = "INSERT INTO t_games VALUES(0," + date + ");";
 
+	if (execute(query))
+	{
+		return -1;
+	}
+
+	query = "SELECT game_id FROM t_games ORDER BY game_id DESC LIMIT 1;";
+	int roomID = stoi(results["game_id"][0]);
+
+	return roomID;
 }
 
-bool DataBase::updateGameStatus(int)
+bool DataBase::updateGameStatus(int status)
 {
+	string query, date = getCurrentDate();
+	query = "UPDATE t_games SET status = " + to_string(status) + ", end_time = " + date + ";";
 
+	if (execute(query))
+	{
+		return false;
+	}
+
+	return true;
 }
 
-bool DataBase::addAnswerToPlayer(int, string, int, string, bool, int)
+bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, string asnwer, bool isCorrect, int answerTime)
 {
+	int correct = isCorrect ? 1 : 0;
+	string query;
+	query = "INSERT INTO t_players_answers VALUES(" + to_string(gameID) + ", " + username + ", " + to_string(questionID) + ", " + to_string(correct) + ", " + to_string(answerTime);
 
+	return execute(query);
 }
 
 void DataBase::clearTable()
@@ -289,24 +326,4 @@ int DataBase::callback(void* notUsed, int argc, char** argv, char** azCol)
 	}
 
 	return 0;
-}
-
-int static callBackCount(void*, int, char**, char**)
-{
-
-}
-
-int static callBackQuestions(void*, int, char**, char**)
-{
-
-}
-
-int static callBackBestScores(void*, int, char**, char**)
-{
-
-}
-
-int static callBackPersonalStatus(void*, int, char**, char**)
-{
-
 }
