@@ -103,15 +103,17 @@ vector<Question *> DataBase::initQuestions(int questionsNo)
 
 Question * DataBase::createQuestion(int num)
 {
+	int q_id;
 	Question * q;
 	string question, correctAns, A2, A3, A4;
+	q_id = stoi(results["question_id"][num]);
 	question = results["question"][num];
 	correctAns = results["correct_ans"][num];
 	A2 = results["ans2"][num];
 	A3 = results["ans3"][num];
 	A4 = results["ans4"][num];
 
-	q = new Question(num + 1, question, correctAns, A2, A3, A4);
+	q = new Question(q_id, question, correctAns, A2, A3, A4);
 
 	return q;
 }

@@ -8,6 +8,7 @@
 #include "DataBase.h"
 #include "Question.h"
 #include "User.h"
+#include "Protocol.h"
 
 using namespace std;
 
@@ -23,8 +24,8 @@ class Game
 		int _currentTurnAnswers;
 
 		bool insertGameToDB();
-		void initQuestionsFromDB();
 		void sendQuestionToAllUsers();
+
 	public:
 		Game(const vector<User *>&, int, DataBase&);
 		~Game();
@@ -33,6 +34,9 @@ class Game
 		void handleFinishGame();
 		bool handleNextTurn();
 		bool handleAnswerFromUser(User *, int, int);
+
+		string buildQuestionPacket(int questionNo);
+		string padNumbers(int num);
 
 		bool leaveGame(User *);
 		int getID();
