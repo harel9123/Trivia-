@@ -83,12 +83,25 @@ string Room::getUsersAsString(vector<User *> users, User * user)
 	return usersStr;
 }
 
-void Room::sendMessage(string)
+void Room::sendMessage(string message)
 {
-
+	sendMessage(NULL , message);
 }
 
-void Room::sendMessage(User *, string)
+void Room::sendMessage(User *excludeUser, string message)
 {
-
+	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+	{
+		if (*it != excludeUser)
+		{
+			try
+			{
+				(*it)->send(message);
+			}
+			catch (exception e)
+			{
+				throw(e);
+			}
+		}
+	}
 }
