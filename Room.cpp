@@ -19,6 +19,7 @@ bool Room::joinRoom(User * user)
 		retVal = true;
 	}
 	sendMessage(getUsersListMessage());
+	return retVal;
 }
 
 void Room::leaveRoom(User *user)

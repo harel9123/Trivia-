@@ -24,7 +24,7 @@ class Room
 		void sendMessage(User *, string);
 
 	public:
-		Room(int id, User * admin, string name, int maxUsers, int questionsNo, int questionTime);
+		Room(int, User *, string, int, int, int);
 
 		bool joinRoom(User *);
 		void leaveRoom(User *);
@@ -33,7 +33,6 @@ class Room
 		string getUsersListMessage();
 		vector<User *> getUsers() { return _users; };
 		int getQuestionsNo(){ return _questionsNo; };
-		int getQuestionTime(){ return _questionTime; };
 		int getId(){ return _id; };
 		string getName() { return _name; };
 };

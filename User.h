@@ -2,15 +2,15 @@
 
 #include <iostream>
 #include <string>
-
-#include "Helper.h"
+#include <Windows.h>
+#include <WinSock2.h>
 #include "Room.h"
 #include "Game.h"
 
+#pragma comment(lib,"ws2_32.lib")
 using namespace std;
 
 class Room;
-class Game;
 
 class User
 {
@@ -32,7 +32,7 @@ class User
 		void clearRoom();
 		void clearGame();	
 
-		bool createRoom(int roomId, string roomName, int maxUsers, int questionsNo, int questionTime);
+		bool createRoom(int, string, int, int, int);//Fill in
 		bool joinRoom(Room * room);
 
 		void leaveRoom();

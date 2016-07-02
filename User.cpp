@@ -33,23 +33,27 @@ void User::clearGame()
 
 bool User::createRoom(int roomId, string roomName, int maxUsers, int questionsNo, int questionTime)
 {
+	bool retVal = false;
 	if (_currRoom == nullptr)
 	{
 		_currRoom = new Room(roomId, this, roomName, maxUsers, questionsNo, questionTime);
 		if (_currRoom != nullptr)
 		{
 			send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_SUC));
+			retVal = true;
 		}
 		else
 		{
 			send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_FAIL));
+			retVal = false;
 		}
 	}
 	else
 	{
 		send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_FAIL));
+		retVal = false;
 	}
-
+	return retVal;
 }
 
 bool User::joinRoom(Room * newRoom)
@@ -95,7 +99,11 @@ bool User::leaveGame()
 	bool retVal = false;
 	if (_currGame != nullptr)
 	{
-		_currGame->leaveGame(this);
+		if (_currGame->leaveGame(this))
+		{
+			retVal = true;
+			_currGame = nullptr;
+		}
 	}
-	_currGame = nullptr;
+	return retVal;
 }
