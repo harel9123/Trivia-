@@ -19,6 +19,7 @@ class Game
 		vector<User *> _players;
 		int _questionsNo;
 		int _currQuestionIndex;
+		int _gameID;
 		DataBase &_db;
 		map<string, int> _results;
 		int _currentTurnAnswers;
@@ -33,10 +34,10 @@ class Game
 		void sendFirstQuestion();
 		void handleFinishGame();
 		bool handleNextTurn();
-		bool handleAnswerFromUser(User *, int, int);
+		bool handleAnswerFromUser(User * user, int answerNo, int time);
 
 		string buildQuestionPacket(int questionNo);
-		string padNumbers(int num);
+		string padNumbers(int num, int finishLength);
 
 		bool leaveGame(User *);
 		int getID();

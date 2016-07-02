@@ -259,10 +259,10 @@ int DataBase::insertNewGame()
 	return roomID;
 }
 
-bool DataBase::updateGameStatus(int status)
+bool DataBase::updateGameStatus(int gameID)
 {
 	string query, date = getCurrentDate();
-	query = "UPDATE t_games SET status = " + to_string(status) + ", end_time = " + date + ";";
+	query = "UPDATE t_games SET status = " + to_string(1) + ", end_time = " + date + " WHERE game_id = " + to_string(gameID) + ";";
 
 	if (execute(query))
 	{
@@ -272,7 +272,7 @@ bool DataBase::updateGameStatus(int status)
 	return true;
 }
 
-bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, string asnwer, bool isCorrect, int answerTime)
+bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime)
 {
 	int correct = isCorrect ? 1 : 0;
 	string query;
