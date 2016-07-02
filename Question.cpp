@@ -1,26 +1,58 @@
 #include "Question.h"
+#include <time.h>
 
-Question::Question(int, string, string, string, string, string)
+Question::Question(int id, string question, string correctAnswer, string answer2, string answer3, string answer4)
 {
+	_id = id;
+	_question = question;
+	srand(time(NULL));
+	currAnswerIndex = rand() % 4 + 1;
+
+	for (int i = 0 ; i < 4 ; i++)
+	{
+		_answers[i] = "EMPTY";
+	}
+
+	_answers[currAnswerIndex] = correctAnswer;
+
+	int j = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		if (_answers[i] == "EMPTY"  && j == 0)
+		{
+			_answers[i] = answer2;
+			j++;
+		}
+		if (_answers[i] == "EMPTY"  && j == 1)
+		{
+			_answers[i] = answer3;
+			j++;
+		}
+		if (_answers[i] == "EMPTY"  && j == 2)
+		{
+			_answers[i] = answer4;
+			j++;
+		}
+	}
 
 }
 
 string Question::getQuestion()
 {
-
+	return _question;
 }
 
 string* Question::getAnswers()
 {
-
+	return _answers;
 }
 
 int Question::getCorrectAnswerIndex()
 {
-
+	return currAnswerIndex;
 }
 
 int Question::getId()
 {
-
+	return _id;
 }
