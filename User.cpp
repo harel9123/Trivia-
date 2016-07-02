@@ -33,8 +33,22 @@ void User::clearGame()
 
 bool User::createRoom(int roomId, string roomName, int maxUsers, int questionsNo, int questionTime)
 {
-	//User *u;
-	//Room _currRoom(roomId, u, roomName, maxUsers, questionsNo, questionTime);
+	if (_currRoom == nullptr)
+	{
+		_currRoom = new Room(roomId, this, roomName, maxUsers, questionsNo, questionTime);
+		if (_currRoom != nullptr)
+		{
+			send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_SUC));
+		}
+		else
+		{
+			send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_FAIL));
+		}
+	}
+	else
+	{
+		send(to_string(CREATE_ROOM_RESP) + to_string(CREATE_ROOM_FAIL));
+	}
 
 }
 
@@ -43,7 +57,7 @@ bool User::joinRoom(Room * newRoom)
 	bool retVal = false;
 	if (_currRoom != nullptr)
 	{
-		newRoom->joinRoom(); //to fix in the class
+		newRoom->joinRoom(this);
 		if (_currRoom != nullptr)
 		{
 			retVal = true;
@@ -56,14 +70,24 @@ void User::leaveRoom()
 {
 	if (_currRoom != nullptr)
 	{
-		_currRoom->leaveRoom(); //to fix in the class
+		_currRoom->leaveRoom(this);
 	}
 	_currRoom = nullptr;
 }
 
-void User::closeRoom()
+int User::closeRoom()
 {
-
+	int retVal = -1;
+	if (_currRoom != nullptr)
+	{
+		if (_currRoom->closeRoom(this) == _currRoom->getId()) //or != -1
+		{
+			retVal = _currRoom->getId();
+			delete _currRoom;
+			_currRoom = nullptr;
+		}
+	}
+	return retVal;
 }
 
 bool User::leaveGame()
@@ -71,7 +95,7 @@ bool User::leaveGame()
 	bool retVal = false;
 	if (_currGame != nullptr)
 	{
-		_currGame->leaveGame();//to fix in the class
+		_currGame->leaveGame(this);
 	}
 	_currGame = nullptr;
 }

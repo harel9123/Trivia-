@@ -36,6 +36,6 @@ class User
 		bool joinRoom(Room * room);
 
 		void leaveRoom();
-		void closeRoom();
+		int closeRoom();
 		bool leaveGame();
 };
