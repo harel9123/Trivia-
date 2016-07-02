@@ -48,7 +48,7 @@ void Game::sendFirstQuestion()
 void Game::handleFinishGame()
 {
 	_db.updateGameStatus(_gameID);
-	int i, length = _players.size(), num;
+	int i, length = _players.size();
 
 	string packet, name, paddedLen, score, excep = "";
 	packet = to_string(GAME_OVER) + to_string(length);
@@ -110,7 +110,7 @@ bool Game::handleAnswerFromUser(User * user, int answerNo, int time)
 
 	string answer = "";
 	int correctIndex = _questions[_currQuestionIndex]->getCorrectAnswerIndex();
-	int isCorrect = answerNo == correctIndex ? 1 : 0;
+	bool isCorrect = answerNo == correctIndex;
 
 	string packet;
 	packet = to_string(ANSWER_RELATE);
@@ -146,7 +146,7 @@ bool Game::handleAnswerFromUser(User * user, int answerNo, int time)
 bool Game::leaveGame(User * user)
 {
 	vector<User *>::iterator it;
-	int length, i;
+	int length;
 	length = _players.size();
 
 	for (it = _players.begin(); it != _players.end(); ++it)

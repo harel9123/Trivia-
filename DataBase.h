@@ -2,11 +2,10 @@
 
 #include <iostream>
 #include <vector>
-#include <string>
 #include <unordered_map>
+#include <string>
 #include <map>
-#include <cstdlib> 
-#include <ctime>
+
 #include "sqlite3.h"
 #include "Question.h"
 
@@ -30,12 +29,10 @@ class DataBase
 		bool addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime);
 
 	private:
-		sqlite3 * db;
-		unordered_map<string, vector<string>> results;
+		sqlite3 * db;		
 		void buildScoresMap(map<string, int> scores);
 		Question * createQuestion(int num);
 		void clearTable();
 		bool execute(string);
 		string getCurrentDate();
-		int callback(void* notUsed, int argc, char** argv, char** azCol);
 };

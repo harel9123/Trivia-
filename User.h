@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <string>
+
 #include "Helper.h"
-#include "Room.h"
 #include "Game.h"
+#include "Room.h"
+#include "Protocol.h"
 
 using namespace std;
 

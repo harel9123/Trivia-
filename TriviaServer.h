@@ -3,18 +3,17 @@
 #include <iostream>
 #include <string>
 #include <mutex>
-#include <map>
 #include <queue>
-#include <exception>
 #include <thread>
+#include <map>
 #include <condition_variable>
 
 #include "Helper.h"
+#include "Socket.h"
 #include "User.h"
 #include "Room.h"
-#include "ReceivedMessage.h"
 #include "DataBase.h"
-#include "Protocol.h"
+#include "ReceivedMessage.h"
 #include "Validator.h"
 
 using namespace std;
@@ -22,13 +21,12 @@ using namespace std;
 class TriviaServer
 {
 	private:
+		Socket * s;
 		SOCKET _socket;
-		sockaddr_in _client;
 		map<SOCKET, User *> _connectedUsers;
-		DataBase _db;
+		DataBase * _db;
 		map<int, Room *> _roomsList;
 
-		mutex _mtxReceivedMessages;
 		queue<ReceivedMessage *> _queRcvMessages;
 
 		static int _roomIdSequence;
@@ -38,23 +36,23 @@ class TriviaServer
 		void clientHandler(SOCKET client);
 		void safeDeleteUser(ReceivedMessage *);
 
-		User * handleSignin(ReceivedMessage *) throw();
-		bool handleSignup(ReceivedMessage *) throw();
-		void handleSignout(ReceivedMessage *) throw();
+		User * handleSignin(ReceivedMessage *);
+		bool handleSignup(ReceivedMessage *);
+		void handleSignout(ReceivedMessage *);
 
-		void handleLeaveGame(ReceivedMessage *) throw();
-		void handleStartGame(ReceivedMessage *) throw();
-		void handlePlayerAnswer(ReceivedMessage *) throw();
+		void handleLeaveGame(ReceivedMessage *);
+		void handleStartGame(ReceivedMessage *);
+		void handlePlayerAnswer(ReceivedMessage *);
 
-		bool handleCreateRoom(ReceivedMessage *) throw();
-		bool handleCloseRoom(ReceivedMessage *) throw();
-		bool handleJoinRoom(ReceivedMessage *) throw();
-		bool handleLeaveRoom(ReceivedMessage *) throw();
-		void handleGetUsersInRoom(ReceivedMessage *) throw();
-		void handleGetRooms(ReceivedMessage *) throw();
+		bool handleCreateRoom(ReceivedMessage *);
+		bool handleCloseRoom(ReceivedMessage *);
+		bool handleJoinRoom(ReceivedMessage *);
+		bool handleLeaveRoom(ReceivedMessage *);
+		void handleGetUsersInRoom(ReceivedMessage *);
+		void handleGetRooms(ReceivedMessage *);
 
-		void handleGetBestScores(ReceivedMessage *) throw();
-		void handleGetPersonalStatus(ReceivedMessage *) throw();
+		void handleGetBestScores(ReceivedMessage *);
+		void handleGetPersonalStatus(ReceivedMessage *);
 
 		void handleReceivedMessages();
 		void addReceivedMessage(ReceivedMessage *);

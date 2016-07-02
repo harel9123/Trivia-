@@ -1,6 +1,4 @@
 #include "User.h"
-#include "Helper.h"
-#include "Room.h"
 
 
 User::User(string name, SOCKET sock)

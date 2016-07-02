@@ -1,8 +1,9 @@
 #pragma once
 
-#include "SocketsInclude.h"
 #include <iostream>
 #include <string>
+
+#include "SocketsInclude.h"
 
 using namespace std;
 
@@ -23,6 +24,6 @@ class Socket
 
 		SOCKET getSocket() { return _socket; };
 	private:
-		sockaddr_in _server, _client;
+		sockaddr_in _server;
 		SOCKET _socket;
 };

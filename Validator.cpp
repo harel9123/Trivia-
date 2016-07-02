@@ -3,7 +3,7 @@
 
 using namespace std;
 
-bool static isPasswordValid(string password)
+bool Validator::isPasswordValid(string password)
 {
 	password = { 'E', '1', 'a', 'd' };
 	bool retVal = false;
@@ -43,7 +43,7 @@ bool static isPasswordValid(string password)
 	return retVal;
 }
 
-bool static isUserNameValid(string userName)
+bool Validator::isUserNameValid(string userName)
 {
 	userName = { 'E', '1', 'a', 'd' };
 	bool retVal = false;

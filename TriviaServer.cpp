@@ -1,50 +1,83 @@
 #include "TriviaServer.h"
 
 int TriviaServer::_roomIdSequence = 0;
+mutex _mtxReceivedMessages;
+condition_variable cv;
+
+TriviaServer::TriviaServer()
+{
+	try
+	{
+		_db = new DataBase();
+		s = new Socket(8820);
+	}
+	catch (exception e)
+	{
+		throw (e);
+	}
+}
+
+TriviaServer::~TriviaServer()
+{
+	delete _db;
+	delete s;
+}
 
 void TriviaServer::server()
 {
-	bindAndListen();
 	SOCKET soc;
-	thread handleMessages(&handleReceivedMessages);
+	thread handleMessages(&TriviaServer::handleReceivedMessages, this);
 	handleMessages.detach();
+
+	try
+	{
+		bindAndListen();
+	}
+	catch (exception e)
+	{
+		cout << e.what() << endl;
+		return;
+	}
 
 	while (true)
 	{
-		soc = acceptConnection();
-		thread t(&clientHandler, soc);
+		try
+		{
+			soc = acceptConnection();
+		}
+		catch (exception e)
+		{
+			cout << e.what() << endl;
+			return;
+		}
+		thread t(&TriviaServer::clientHandler, this, soc);
 		t.detach();
 	}
 }
 
 void TriviaServer::bindAndListen()
 {
-	Socket s(8820);
-	int result;
-	result = s.socketBind();
-	if (result == SOCKET_ERROR)
+	try
 	{
-		exception e("Binding the socket has failed !");
+		s->socketBind();
+		s->socketListen(1);
+	}
+	catch (exception e)
+	{
 		throw(e);
 	}
-	result = s.socketListen(1);
-	if (result == SOCKET_ERROR)
-	{
-		exception e("Listening to the socket has failed !");
-		throw(e);
-	}
-	sockaddr_in server;
-	int bindRes;
-	_socket = s.getSocket();
+	_socket = s->getSocket();
 }
 
 SOCKET TriviaServer::acceptConnection()
 {
-	int len = sizeof(struct sockaddr_in);
-	SOCKET soc = accept(_socket, (struct sockaddr *)&_client, &len);
-	if (soc == SOCKET_ERROR)
+	SOCKET soc = 0;
+	try
 	{
-		exception e ("Accepting connection has failed !");
+		soc = s->socketAccept();
+	}
+	catch (exception e)
+	{
 		throw(e);
 	}
 	return soc;
@@ -59,8 +92,7 @@ void TriviaServer::clientHandler(SOCKET client)
 		msgCode = Helper::getMessageTypeCode(client);
 		if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
 		msg = buildReceiveMessage(client, msgCode);
-
-		
+		_queRcvMessages.push(msg);
 	}
 }
 
@@ -85,12 +117,12 @@ User * TriviaServer::handleSignin(ReceivedMessage * msg)
 	vector<string> values = msg->getValues();
 	string username = values[0];
 	string password = values[1];
-	bool res = _db.isUserAndPassMatch(username, password);
+	bool res = _db->isUserAndPassMatch(username, password);
 	if (res)
 	{
 		//Checking if the user is logged in.
 		user = getUserByName(username);
-		if (user != nullptr)
+		if (user == nullptr)
 		{
 			user = new User(username, msg->getSock());
 			message += to_string(SIGNIN_SUCCESS);
@@ -133,9 +165,9 @@ bool TriviaServer::handleSignup(ReceivedMessage * msg)
 		isValid = Validator::isPasswordValid(password);
 		if (isValid)
 		{
-			if (!_db.isUserExists(username))
+			if (!_db->isUserExists(username))
 			{
-				_db.addNewUser(username, password, email);
+				_db->addNewUser(username, password, email);
 				message += to_string(SIGNUP_SUCCESS);
 			}
 			else
@@ -194,7 +226,7 @@ void TriviaServer::handleStartGame(ReceivedMessage * msg)
 	vector<User *> users = room->getUsers();
 	try
 	{
-		game = new Game(users, room->getQuestionsNo(), _db);
+		game = new Game(users, room->getQuestionsNo(), *_db);
 		delete room;
 		game->sendFirstQuestion();
 	}
@@ -316,12 +348,12 @@ bool TriviaServer::handleJoinRoom(ReceivedMessage * msg)
 	{
 		cout << e.what() << endl;
 	}
-
 }
 
 bool TriviaServer::handleLeaveRoom(ReceivedMessage * msg)
 {
 
+	return true;
 }
 
 void TriviaServer::handleGetUsersInRoom(ReceivedMessage * msg)
@@ -331,7 +363,28 @@ void TriviaServer::handleGetUsersInRoom(ReceivedMessage * msg)
 
 void TriviaServer::handleGetRooms(ReceivedMessage * msg)
 {
+	map<int, Room *>::iterator it;
+	string name, len, id, packet = to_string(ROOM_LIST_RESP) + to_string(_roomsList.size());
+	Room * currRoom;
+	for (it = _roomsList.begin(); it != _roomsList.end(); ++it)
+	{
+		currRoom = it->second;
+		id = Helper::getPaddedNumber(currRoom->getId(), 4);
+		name = currRoom->getName();
+		len = Helper::getPaddedNumber(name.size(), 2);
+		packet += id + len + name;
+	}
 
+	User * user;
+	try
+	{
+		user = msg->getUser();
+		user->send(packet);
+	}
+	catch (exception e)
+	{
+		cout << e.what() << endl;
+	}
 }
 
 void TriviaServer::handleGetBestScores(ReceivedMessage * msg)
@@ -351,7 +404,12 @@ void TriviaServer::handleReceivedMessages()
 	while (true)
 	{
 		{
-			lock_guard<mutex> lock(_mtxReceivedMessages);
+			unique_lock<mutex> guard(_mtxReceivedMessages);
+			cv.wait(guard, [&]
+			{
+				while (_queRcvMessages.size() == 0);
+				return true;
+			});
 			msg = _queRcvMessages.front();
 			msgCode = msg->getMessageCode();
 
@@ -364,7 +422,8 @@ void TriviaServer::handleReceivedMessages()
 					case SIGNIN_CODE:
 						user = handleSignin(msg);
 						s = msg->getSock();
-						_connectedUsers.insert(pair<SOCKET, User *>(s, user));
+						_connectedUsers.insert(make_pair(s, user));
+						_connectedUsers[s] = user;
 						break;
 
 					case SIGNOUT_CODE:
@@ -428,6 +487,9 @@ void TriviaServer::handleReceivedMessages()
 			{
 				cout << e.what() << endl;
 			}
+
+			delete msg;
+			_queRcvMessages.pop();
 		}
 	}
 }
@@ -443,7 +505,19 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 {
 	ReceivedMessage * msg;
 	msg = new ReceivedMessage(client, msgCode);
-	vector<string> values = msg->getValues();
+	vector<string> &values = msg->getValues();
+
+	User * user = nullptr;
+	try
+	{
+		user = _connectedUsers[client];
+	}
+	catch (exception e){}
+
+	if (msg->getUser() == nullptr)
+	{
+		msg->setUser(user);
+	}
 
 	int len;
 	string value;
@@ -504,12 +578,10 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 			value = Helper::getStringPartFromSocket(client, 1);
 			values.push_back(value);
 
-			len = Helper::getIntPartFromSocket(client, 2);
-			value = Helper::getStringPartFromSocket(client, len);
+			value = Helper::getStringPartFromSocket(client, 2);
 			values.push_back(value);
 
-			len = Helper::getIntPartFromSocket(client, 2);
-			value = Helper::getStringPartFromSocket(client, len);
+			value = Helper::getStringPartFromSocket(client, 2);
 			values.push_back(value);
 			break;
 
@@ -551,7 +623,27 @@ ReceivedMessage * TriviaServer::buildReceiveMessage(SOCKET client, int msgCode)
 
 User * TriviaServer::getUserByName(string name)
 {
+	int i, length;
+	bool flag = false;
+	length = _connectedUsers.size();
+	User * user = nullptr;
+	for (i = 0; i < length && !flag; i++)
+	{
+		user = _connectedUsers[i];
+		if (user != nullptr)
+		{
+			if (name == user->getUsername())
+			{
+				flag = true;
+			}
+		}
+	}
+	if (!flag)
+	{
+		user = nullptr;
+	}
 
+	return user;
 }
 
 User * TriviaServer::getUserBySocket(SOCKET sock)

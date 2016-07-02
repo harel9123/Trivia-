@@ -1,14 +1,13 @@
 #include "Question.h"
-#include <time.h>
 
 Question::Question(int id, string question, string correctAnswer, string answer2, string answer3, string answer4)
 {
 	_id = id;
 	_question = question;
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	currAnswerIndex = rand() % 4 + 1;
 
-	for (int i = 0 ; i < 4 ; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		_answers[i] = "EMPTY";
 	}

@@ -1,5 +1,7 @@
 #include "DataBase.h"
 
+unordered_map<string, vector<string>> results;
+
 DataBase::DataBase()
 {
 	int rc;
@@ -26,7 +28,7 @@ bool DataBase::isUserExists(string username)
 
 	bool retVal = true;
 	string query;
-	query = "SELECT username FROM users WHERE username = " + username + ";";
+	query = "SELECT username FROM t_users WHERE username = '" + username + "';";
 
 	retVal = execute(query);
 
@@ -46,7 +48,7 @@ bool DataBase::addNewUser(string username, string password, string email)
 	}
 
 	string query;
-	query = "INSERT INTO users VALUES(" + username + ", " + password + ", " + email + ");";
+	query = "INSERT INTO t_users VALUES(" + username + ", " + password + ", " + email + ");";
 
 	retVal = execute(query);
 
@@ -62,7 +64,7 @@ bool DataBase::isUserAndPassMatch(string username, string password)
 	}
 
 	string query, pass;
-	query = "SELECT password FROM users WHERE username = " + username + ";";
+	query = "SELECT password FROM t_users WHERE username = '" + username + "';";
 
 	retVal = execute(query);
 	if (retVal == false)
@@ -77,7 +79,6 @@ bool DataBase::isUserAndPassMatch(string username, string password)
 
 vector<Question *> DataBase::initQuestions(int questionsNo)
 {
-	Question * question;
 	vector<Question *> questions = vector<Question *>();
 	int i, num, len;
 	string query;
@@ -160,20 +161,20 @@ vector<string> DataBase::getBestScores()
 void DataBase::buildScoresMap(map<string, int> scores)
 {
 	string name, highestName;
-	int i, j, length = results["username"].size(), max = 0, val = 0;
+	int i, length = results["username"].size(), max = 0, val = 0;
 	
 	for (i = 0; i < length; i++)
 	{
 		name = results["username"][i];
-		scores.insert(pair<string, int>(results["username"][j], 0));
+		scores.insert(pair<string, int>(results["username"][i], 0));
 	}
 	
 	for (i = 0; i < length; i++)
 	{
-		name = results["username"][j];
+		name = results["username"][i];
 		val = scores[name];
 
-		if (stoi(results["is_correct"][j]) == 1)
+		if (stoi(results["is_correct"][i]) == 1)
 		{
 			val++;
 		}
@@ -184,13 +185,13 @@ void DataBase::buildScoresMap(map<string, int> scores)
 
 vector<string> DataBase::getPersonalStatus(string username)
 {
-	std::pair<std::map<char, int>::iterator, bool> ret;
+	std::pair<std::map<string, int>::iterator, bool> ret;
 	map<string, int> tempMap = map<string, int>();
 	vector<string> status = vector<string>();
 	map<string, int> scores = map<string, int>();
 
 	string query;
-	query = "SELECT game_id, username, is_correct, answer_time FROM t_players_answers WHERE username = " + username + ";";
+	query = "SELECT game_id, username, is_correct, answer_time FROM t_players_answers WHERE username = '" + username + "';";
 
 	if (execute(query) == false)
 	{
@@ -290,24 +291,7 @@ void DataBase::clearTable()
 	results.clear();
 }
 
-bool DataBase::execute(string query)
-{
-	clearTable();
-
-	int rc;
-	char * errMsg;
-	rc = sqlite3_exec(db, query.c_str(), this->callback, 0, &errMsg);
-
-	if (rc != SQLITE_OK)
-	{
-		cout << "SQL Error: " << errMsg << endl;
-		sqlite3_free(errMsg);
-		return false;
-	}
-	return true;
-}
-
-int DataBase::callback(void* notUsed, int argc, char** argv, char** azCol)
+int callback(void* notUsed, int argc, char** argv, char** azCol)
 {
 	int i;
 
@@ -328,4 +312,21 @@ int DataBase::callback(void* notUsed, int argc, char** argv, char** azCol)
 	}
 
 	return 0;
+}
+
+bool DataBase::execute(string query)
+{
+	clearTable();
+	cout << "QUERY: " << query << endl;
+	int rc;
+	char * errMsg;
+	rc = sqlite3_exec(db, query.c_str(), callback, 0, &errMsg);
+
+	if (rc != SQLITE_OK)
+	{
+		cout << "SQL Error: " << errMsg << endl;
+		sqlite3_free(errMsg);
+		return false;
+	}
+	return true;
 }

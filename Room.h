@@ -3,8 +3,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Helper.h"
+
 #include "User.h"
+
+using namespace std;
 
 class User;
 

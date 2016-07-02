@@ -45,7 +45,9 @@ int Socket::socketBind()
 	bindRes = bind(_socket, (struct sockaddr *)&_server, sizeof(_server));
 	if (bindRes == SOCKET_ERROR)
 	{
-		cout << "Bind failed with error code : " << WSAGetLastError() << endl;
+		string s = "Bind failed with error code : " + to_string(WSAGetLastError());
+		exception e(s.c_str());
+		throw(e);
 	}
 	return bindRes;
 }
@@ -57,7 +59,15 @@ int Socket::socketBind()
 **/
 int Socket::socketListen(int connections)
 {
-	return listen(_socket, connections);
+	int listenRes;
+	listenRes = listen(_socket, connections);
+	if (listenRes == SOCKET_ERROR)
+	{
+		string s = "Listening has failed with error code : " + to_string(WSAGetLastError());
+		exception e(s.c_str());
+		throw(e);
+	}
+	return listenRes;
 }
 
 /**
@@ -69,16 +79,20 @@ SOCKET Socket::socketAccept()
 {
 	cout << "Waiting for incoming connections..." << endl;
 
+	sockaddr_in _client;
 	int c = sizeof(struct sockaddr_in);
-	SOCKET Socket;
-	Socket = accept(_socket, (struct sockaddr *)&_client, &c);
-	if (Socket == INVALID_SOCKET)
+
+	SOCKET socket;
+	socket = accept(_socket, (struct sockaddr *)&_client, &c);
+	if (socket == INVALID_SOCKET)
 	{
-		cout << "Accept failed with error code : " << WSAGetLastError() << endl;
+		string s = "Accept failed with error code : " + to_string(WSAGetLastError());
+		exception e(s.c_str());
+		throw(e);
 	}
 
 	cout << "Connection accepted" << endl;
-	return Socket;
+	return socket;
 }
 
 /**
