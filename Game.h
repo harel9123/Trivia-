@@ -12,6 +12,8 @@
 
 using namespace std;
 
+class User;
+
 class Game
 {
 	private:
@@ -28,7 +30,7 @@ class Game
 		void sendQuestionToAllUsers();
 
 	public:
-		Game(const vector<User *>&, int, DataBase&);
+		Game(const vector<User *>& players, int questionsNo, DataBase& db);
 		~Game();
 
 		void sendFirstQuestion();

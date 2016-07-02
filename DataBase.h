@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 #include <map>
-#include <sstream>
 #include <cstdlib> 
 #include <ctime>
 #include "sqlite3.h"

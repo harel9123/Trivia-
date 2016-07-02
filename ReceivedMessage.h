@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "Socket.h"
+#include "Helper.h"
 #include "User.h"
 
 class ReceivedMessage
