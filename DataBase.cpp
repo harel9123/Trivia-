@@ -121,7 +121,12 @@ vector<Question *> DataBase::initQuestions(int questionsNo)
 
 	for (i = 0; i < questionsNo; i++)
 	{
+<<<<<<< HEAD
 		questions.push_back(createQuestion(i));
+=======
+		num = rand() % questionsNo;
+		questions.push_back(createQuestion(num));
+>>>>>>> origin/master
 	}
 
 	return questions;

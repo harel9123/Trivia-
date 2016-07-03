@@ -113,6 +113,10 @@ int Room::closeRoom(User *user)
 	if (user == _admin)
 	{
 		int i, length = _users.size();
+<<<<<<< HEAD
+=======
+		//need to take care about sendMessage because i didnt understand it
+>>>>>>> origin/master
 		retVal = _id;
 		for (i = 0; i < length; i++)
 		{
