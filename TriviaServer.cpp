@@ -362,8 +362,19 @@ bool TriviaServer::handleJoinRoom(ReceivedMessage * msg)
 
 bool TriviaServer::handleLeaveRoom(ReceivedMessage * msg)
 {
+	User * user = msg->getUser();
+	if (user == nullptr)
+	{
+		return false;
+	}
 
-	return true;
+	Room * room = user->getRoom();
+	if (room == nullptr)
+	{
+		return false;
+	}
+
+	return user->leaveGame();
 }
 
 void TriviaServer::handleGetUsersInRoom(ReceivedMessage * msg)

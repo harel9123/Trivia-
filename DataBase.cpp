@@ -247,23 +247,27 @@ string DataBase::getCurrentDate()
 int DataBase::insertNewGame()
 {
 	string query, date = getCurrentDate();
-	query = "INSERT INTO t_games VALUES(0," + date + ");";
+	query = "INSERT INTO t_games(status, start_time) VALUES(0, '" + date + "');";
 
-	if (execute(query))
+	if (!execute(query))
 	{
 		return -1;
 	}
 
 	query = "SELECT game_id FROM t_games ORDER BY game_id DESC LIMIT 1;";
-	int roomID = stoi(results["game_id"][0]);
+	if (!execute(query))
+	{
+		return -1;
+	}
+	int gameID = stoi(results["game_id"][0]);
 
-	return roomID;
+	return gameID;
 }
 
 bool DataBase::updateGameStatus(int gameID)
 {
 	string query, date = getCurrentDate();
-	query = "UPDATE t_games SET status = " + to_string(1) + ", end_time = " + date + " WHERE game_id = " + to_string(gameID) + ";";
+	query = "UPDATE t_games SET status = " + to_string(1) + ", end_time = '" + date + "' WHERE game_id = " + to_string(gameID) + ";";
 
 	if (execute(query))
 	{
