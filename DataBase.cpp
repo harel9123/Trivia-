@@ -95,7 +95,7 @@ vector<Question *> DataBase::initQuestions(int questionsNo)
 
 	for (i = 0; i < questionsNo; i++)
 	{
-		num = rand() % len;
+		num = rand() % questionsNo;
 		questions.push_back(createQuestion(num));
 	}
 

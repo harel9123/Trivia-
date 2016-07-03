@@ -9,7 +9,7 @@ Question::Question(int id, string question, string correctAnswer, string answer2
 
 	for (int i = 0; i < 4; i++)
 	{
-		_answers[i] = "EMPTY";
+		_answers[i] = "";
 	}
 
 	_answers[corrAnswerIndex] = correctAnswer;
@@ -19,17 +19,17 @@ Question::Question(int id, string question, string correctAnswer, string answer2
 	{
 		if (i != corrAnswerIndex)
 		{
-			if (_answers[i] == "EMPTY"  && j == 0)
+			if (_answers[i] == ""  && j == 0)
 			{
 				_answers[i] = answer2;
 				j++;
 			}
-			if (_answers[i] == "EMPTY"  && j == 1)
+			else if (_answers[i] == ""  && j == 1)
 			{
 				_answers[i] = answer3;
 				j++;
 			}
-			if (_answers[i] == "EMPTY"  && j == 2)
+			else if (_answers[i] == ""  && j == 2)
 			{
 				_answers[i] = answer4;
 				j++;

@@ -178,7 +178,7 @@ bool Game::insertGameToDB()
 void Game::sendQuestionToAllUsers()
 {
 	int i, length, usersNum;
-	string packet;
+	string packet, excep = "";
 
 	length = _questions.size();
 	usersNum = _players.size();
@@ -186,7 +186,19 @@ void Game::sendQuestionToAllUsers()
 	packet = buildQuestionPacket(_currQuestionIndex);
 	for (i = 0; i < usersNum; i++)
 	{
-		_players[i]->send(packet);
+		try
+		{
+			_players[i]->send(packet);
+		}
+		catch (exception e)
+		{
+			excep += string(e.what());
+		}
+	}
+	if (excep != "")
+	{
+		exception e(excep.c_str());
+		throw(e);
 	}
 }
 

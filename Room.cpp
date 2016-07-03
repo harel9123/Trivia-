@@ -12,11 +12,30 @@ Room::Room(int id, User * admin, string name, int maxUsers, int questionsNo, int
 
 bool Room::joinRoom(User * user)
 {
+	string excep = "";
 	bool retVal = false;
 	if (_users.size() < _maxUsers)
 	{
 		_users.push_back(user); 
 		retVal = true;
+	}
+
+	string packet = to_string(JOIN_ROOM_RESP);
+	try
+	{
+		if (retVal == false)
+		{
+			packet += to_string(JOIN_ROOM_FULL);
+		}
+		else
+		{
+			packet += to_string(JOIN_ROOM_SUC) + Helper::getPaddedNumber(_questionsNo, 2) + Helper::getPaddedNumber(_questionTime, 2);
+		}
+		user->send(packet);
+	}
+	catch (exception e)
+	{
+		excep += string(e.what()) + "\n";
 	}
 
 	try
@@ -25,7 +44,9 @@ bool Room::joinRoom(User * user)
 	}
 	catch (exception e)
 	{
-		throw(e);
+		excep += string(e.what()) + "\n";
+		exception e2(excep.c_str());
+		throw(e2);
 	}
 
 	return retVal;
@@ -38,11 +59,29 @@ void Room::leaveRoom(User *user)
 		if (*it == user)
 		{
 			_users.erase(it); 
+			break;
 		}
 	}
-	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+
+	string packet = to_string(LEAVE_ROOM_RESP), excep = "";
+	try
 	{
-		sendMessage(*it, getUsersListMessage());
+		user->send(packet);
+	}
+	catch (exception e)
+	{
+		excep += string(e.what()) + "\n";
+	}
+
+	try
+	{
+		sendMessage(user, getUsersListMessage());
+	}
+	catch (exception e)
+	{
+		excep += string(e.what()) + "\n";
+		exception e2(excep.c_str());
+		throw(e2);
 	}
 }
 
@@ -51,13 +90,14 @@ int Room::closeRoom(User *user)
 	int retVal;
 	if (user == _admin)
 	{
+		int i, length = _users.size();
 		//need to take care about sendMessage because i didnt understand it
 		retVal = _id;
-		for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+		for (i = 0; i < length; i++)
 		{
-			if (*it != _admin)
+			if (_users[i] != _admin)
 			{
-				(*it)->clearRoom();
+				_users[i]->clearRoom();
 			}
 		}
 

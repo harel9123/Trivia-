@@ -89,10 +89,20 @@ void TriviaServer::clientHandler(SOCKET client)
 	ReceivedMessage * msg;
 	while (true)
 	{
-		msgCode = Helper::getMessageTypeCode(client);
-		if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
-		msg = buildReceiveMessage(client, msgCode);
-		_queRcvMessages.push(msg);
+		try
+		{
+			msgCode = Helper::getMessageTypeCode(client);
+			if (msgCode != 0 && msgCode != LEAVE_GAME_REQ && msgCode != CLOSING_GAME_REQ)
+				msg = buildReceiveMessage(client, msgCode);
+			_queRcvMessages.push(msg);
+		}
+		catch (exception e)
+		{
+			cout << e.what() << endl;
+			_connectedUsers.erase(client);
+			closesocket(client);
+			return;
+		}
 	}
 }
 
@@ -224,6 +234,7 @@ void TriviaServer::handleStartGame(ReceivedMessage * msg)
 	Game * game;
 	Room * room = msg->getUser()->getRoom();
 	vector<User *> users = room->getUsers();
+
 	try
 	{
 		game = new Game(users, room->getQuestionsNo(), *_db);
@@ -303,7 +314,13 @@ bool TriviaServer::handleCloseRoom(ReceivedMessage * msg)
 		return false;
 	}
 	Room * room = user->getRoom();
-	int roomID = user->getRoom()->getId();
+	int roomID = -1;
+
+	if (room != nullptr)
+	{
+		roomID = user->getRoom()->getId();
+	}
+
 	int res = -1;
 	try
 	{
@@ -314,7 +331,7 @@ bool TriviaServer::handleCloseRoom(ReceivedMessage * msg)
 		cout << e.what() << endl;
 	}
 
-	if (res != -1)
+	if (res != -1 && roomID != -1)
 	{
 		_roomsList.erase(roomID);
 		return true;
@@ -331,33 +348,34 @@ bool TriviaServer::handleJoinRoom(ReceivedMessage * msg)
 	}
 	int roomID = stoi(msg->getValues()[0]);
 	Room * room = getRoomById(roomID);
+
 	string packet;
 	packet = to_string(JOIN_ROOM_RESP);
+
 	if (room == nullptr || user->getRoom() == room)
 	{
 		packet += to_string(JOIN_ROOM_OTHER);
-		user->send(packet);
+		try
+		{
+			user->send(packet);
+		}
+		catch (exception e)
+		{
+			cout << e.what() << endl;
+		}
 		return false;
-	}
-	else if (user->joinRoom(room) == false)
-	{
-		packet += to_string(JOIN_ROOM_FULL);
 	}
 	else
 	{
-		int questionNo = room->getQuestionsNo(), questionTime = room->getQuestionTime();
-		packet += to_string(JOIN_ROOM_SUC) + Helper::getPaddedNumber(questionNo, 2) + Helper::getPaddedNumber(questionTime, 2);
+		try
+		{
+			user->joinRoom(room);
+		}
+		catch (exception e)
+		{
+			cout << e.what() << endl;
+		}
 	}
-
-	try
-	{
-		user->send(packet);
-	}
-	catch (exception e)
-	{
-		cout << e.what() << endl;
-	}
-	cout << "PACKET: " << packet << endl;
 }
 
 bool TriviaServer::handleLeaveRoom(ReceivedMessage * msg)
@@ -373,8 +391,17 @@ bool TriviaServer::handleLeaveRoom(ReceivedMessage * msg)
 	{
 		return false;
 	}
+	try
+	{
+		user->leaveRoom();
+	}
+	catch (exception e)
+	{
+		cout << e.what() << endl;
+		return false;
+	}
 
-	return user->leaveGame();
+	return true;
 }
 
 void TriviaServer::handleGetUsersInRoom(ReceivedMessage * msg)
