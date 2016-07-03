@@ -2,7 +2,7 @@
 
 Room::Room(int id, User * admin, string name, int maxUsers, int questionsNo, int questionTime)
 {
-	_id =id;
+	_id = id;
 	_admin = admin;
 	_name = name;
 	_maxUsers = maxUsers;
@@ -18,7 +18,16 @@ bool Room::joinRoom(User * user)
 		_users.push_back(user); 
 		retVal = true;
 	}
-	sendMessage(getUsersListMessage());
+
+	try
+	{
+		sendMessage(getUsersListMessage());
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+
 	return retVal;
 }
 
@@ -50,7 +59,16 @@ int Room::closeRoom(User *user)
 			{
 				(*it)->clearRoom();
 			}
-		} 
+		}
+
+		try
+		{
+			sendMessage(to_string(CLOSE_ROOM_RESP));
+		}
+		catch (exception e)
+		{
+			throw(e);
+		}
 	}
 	else
 	{
@@ -61,11 +79,15 @@ int Room::closeRoom(User *user)
 
 string Room::getUsersListMessage()
 {
-	string str = to_string(ROOM_USER_RESP);
-	str += _users.size();
-	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
+	string str = to_string(ROOM_USER_RESP) + to_string(_users.size());
+
+	int i, length = _users.size();
+	string name;
+	for (i = 0; i < length; i++)
 	{
-		str += to_string((*it)->getUsername().size()) + (*it)->getUsername();
+		name = _users[i]->getUsername();
+		str += Helper::getPaddedNumber(name.size(), 2);
+		str += name;
 	}
 	return str;
 }
@@ -85,11 +107,19 @@ string Room::getUsersAsString(vector<User *> users, User * user)
 
 void Room::sendMessage(string message)
 {
-	sendMessage(NULL , message);
+	try
+	{
+		sendMessage(NULL, message);
+	}
+	catch (exception e)
+	{
+		throw (e);
+	}
 }
 
 void Room::sendMessage(User *excludeUser, string message)
 {
+	string excep = "";
 	for (vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
 	{
 		if (*it != excludeUser)
@@ -100,8 +130,14 @@ void Room::sendMessage(User *excludeUser, string message)
 			}
 			catch (exception e)
 			{
-				throw(e);
+				excep += string(e.what()) + "\n";
 			}
 		}
+	}
+
+	if (excep != "")
+	{
+		exception e(excep.c_str());
+		throw(e);
 	}
 }

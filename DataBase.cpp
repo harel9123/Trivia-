@@ -48,7 +48,7 @@ bool DataBase::addNewUser(string username, string password, string email)
 	}
 
 	string query;
-	query = "INSERT INTO t_users VALUES(" + username + ", " + password + ", " + email + ");";
+	query = "INSERT INTO t_users VALUES('" + username + "', '" + password + "', '" + email + "');";
 
 	retVal = execute(query);
 

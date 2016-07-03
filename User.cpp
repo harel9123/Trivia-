@@ -57,12 +57,12 @@ bool User::createRoom(int roomId, string roomName, int maxUsers, int questionsNo
 bool User::joinRoom(Room * newRoom)
 {
 	bool retVal = false;
-	if (_currRoom != nullptr)
+	if (_currRoom == nullptr)
 	{
-		newRoom->joinRoom(this);
-		if (_currRoom != nullptr)
+		retVal = newRoom->joinRoom(this);
+		if (retVal)
 		{
-			retVal = true;
+			_currRoom = newRoom;
 		}
 	}
 	return retVal;

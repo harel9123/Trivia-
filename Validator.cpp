@@ -5,17 +5,26 @@ using namespace std;
 
 bool Validator::isPasswordValid(string password)
 {
-	password = { 'E', '1', 'a', 'd' };
 	bool retVal = false;
 	bool aUpper = false, aLower = false, aDigit = false;
-	if (password.length() > 3)
+	if (password.size() < 4)
+	{
+		return false;
+	}
+	
+	if (('a' <= password[0] && password[0] <= 'z') ||
+		('A' <= password[0] && password[0] <= 'Z'))
 	{
 		retVal = true;
 	}
-	
-	for (int i = 0; i < password.length(); i++)
+	else
 	{
-		if (password[i] = ' ')
+		return false;
+	}
+
+	for (int i = 0; i < password.size(); i++)
+	{
+		if (password[i] == ' ')
 		{
 			retVal = false;
 		}
@@ -32,6 +41,7 @@ bool Validator::isPasswordValid(string password)
 			aDigit = true;
 		}
 	}
+
 	if (aUpper && aLower && aDigit)
 	{
 		retVal = true;
@@ -45,21 +55,21 @@ bool Validator::isPasswordValid(string password)
 
 bool Validator::isUserNameValid(string userName)
 {
-	userName = { 'E', '1', 'a', 'd' };
 	bool retVal = false;
 	if (userName.length())
 	{
 		retVal = true;
 	}
 
-	for (int i = 0; i < userName.length(); i++)
+	for (int i = 0; i < userName.size(); i++)
 	{
-		if (userName[i] = ' ')
+		if (userName[i] == ' ')
 		{
 			retVal = false;
 		}
 	}
-	if (isupper(userName[0]))
+	if (('a' < userName[0] && userName[0] < 'z' ) || 
+		('A' < userName[0] && userName[0] < 'Z'))
 	{
 		retVal = true;
 	}
