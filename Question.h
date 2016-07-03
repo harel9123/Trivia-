@@ -18,7 +18,7 @@ class Question
 	private:
 		string _question;
 		string _answers[4];
-		int currAnswerIndex;
+		int corrAnswerIndex;
 		int _id;
 
 };

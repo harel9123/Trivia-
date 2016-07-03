@@ -5,32 +5,35 @@ Question::Question(int id, string question, string correctAnswer, string answer2
 	_id = id;
 	_question = question;
 	srand((unsigned int)time(NULL));
-	currAnswerIndex = rand() % 4 + 1;
+	corrAnswerIndex = rand() % 4 + 1;
 
 	for (int i = 0; i < 4; i++)
 	{
 		_answers[i] = "EMPTY";
 	}
 
-	_answers[currAnswerIndex] = correctAnswer;
+	_answers[corrAnswerIndex] = correctAnswer;
 
 	int j = 0;
 	for (int i = 0; i < 4; i++)
 	{
-		if (_answers[i] == "EMPTY"  && j == 0)
+		if (i != corrAnswerIndex)
 		{
-			_answers[i] = answer2;
-			j++;
-		}
-		if (_answers[i] == "EMPTY"  && j == 1)
-		{
-			_answers[i] = answer3;
-			j++;
-		}
-		if (_answers[i] == "EMPTY"  && j == 2)
-		{
-			_answers[i] = answer4;
-			j++;
+			if (_answers[i] == "EMPTY"  && j == 0)
+			{
+				_answers[i] = answer2;
+				j++;
+			}
+			if (_answers[i] == "EMPTY"  && j == 1)
+			{
+				_answers[i] = answer3;
+				j++;
+			}
+			if (_answers[i] == "EMPTY"  && j == 2)
+			{
+				_answers[i] = answer4;
+				j++;
+			}
 		}
 	}
 
@@ -48,7 +51,7 @@ string* Question::getAnswers()
 
 int Question::getCorrectAnswerIndex()
 {
-	return currAnswerIndex;
+	return corrAnswerIndex;
 }
 
 int Question::getId()

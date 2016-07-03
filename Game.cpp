@@ -22,7 +22,6 @@ Game::Game(const vector<User *>& players, int questionsNo, DataBase& db) :_db(db
 	_questionsNo = questionsNo;
 	_questions = _db.initQuestions(_questionsNo);
 
-	_gameID = 0;
 	_currentTurnAnswers = 0;
 }
 
