@@ -1,0 +1,114 @@
+#include "Helper.h"
+
+#include <string>
+#include <iomanip>
+#include <sstream>
+
+using namespace std;
+
+// recieves the type code of the message from socket (first byte)
+// and returns the code. if no message found in the socket returns 0 (which means the client disconnected)
+int Helper::getMessageTypeCode(SOCKET sc)
+{
+	try
+	{
+		char* s = getPartFromSocket(sc, 3);
+		std::string msg(s);
+
+		if (msg == "")
+			return 0;
+
+		int res = std::atoi(s);
+		delete s;
+		return  res;
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+}
+
+// send data to socket
+// this is private function
+void Helper::sendData(SOCKET sc, std::string message) 
+{
+	const char* data = message.c_str();
+	
+	if (send(sc, data, message.size(), 0) == INVALID_SOCKET)
+	{
+		throw std::exception("Error while sending message to client");
+	}
+
+	cout << "PACKET: " << data << endl;
+}
+
+int Helper::getIntPartFromSocket(SOCKET sc, int bytesNum)
+{
+	try
+	{
+		char* s = getPartFromSocket(sc, bytesNum, 0);
+		return atoi(s);
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+}
+
+string Helper::getStringPartFromSocket(SOCKET sc, int bytesNum)
+{
+	try
+	{
+		char* s = getPartFromSocket(sc, bytesNum, 0);
+		string res(s);
+		return res;
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+}
+
+// recieve data from socket according byteSize
+// this is private function
+char* Helper::getPartFromSocket(SOCKET sc, int bytesNum)
+{
+	try
+	{
+		return getPartFromSocket(sc, bytesNum, 0);
+	}
+	catch (exception e)
+	{
+		throw(e);
+	}
+}
+
+char* Helper::getPartFromSocket(SOCKET sc, int bytesNum, int flags)
+{
+	if (bytesNum == 0)
+	{
+		return "";
+	}
+
+	char* data = new char[bytesNum + 1];
+	int res = recv(sc, data, bytesNum, flags);
+
+	if (res == INVALID_SOCKET)
+	{
+		std::string s = "Error while recieving from socket: ";
+		s += std::to_string(sc);
+		throw std::exception(s.c_str());
+	}
+
+	data[bytesNum] = 0;
+	return data;
+}
+
+
+string Helper::getPaddedNumber(int num, int digits)
+{
+	std::ostringstream ostr; 
+	ostr <<  std::setw(digits) << std::setfill('0') << num;
+	return ostr.str();
+
+}
